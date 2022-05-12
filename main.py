@@ -3,10 +3,6 @@ from dataclasses import dataclass
 import re
 
 
-CONTROL_COLORS = [
-    'FF0000',  # red
-]
-
 @dataclass
 class Experiment:
     pages: list
@@ -65,18 +61,18 @@ class {self.title}(Page):"""
         return content
 
 
-class ControlSequence:
+class Token:
     def render(self):
         return None
 
 
-class NewPage(ControlSequence):
+class NewPage(Token):
     def __init__(self, title):
         self.type = 'page'
         self.title = title
 
 
-class Comment(ControlSequence):
+class Comment(Token):
     def __init__(self, text):
         self.type = 'comment'
         self.text = text
@@ -85,7 +81,7 @@ class Comment(ControlSequence):
         return f"{{# {self.text} #}}"
 
 
-class Button(ControlSequence):
+class Button(Token):
     def __init__(self, text):
         self.type = 'button'
         self.text = text
@@ -97,7 +93,7 @@ class Button(ControlSequence):
             return f"<button type='button' class='btn btn-primary'>{self.text}</button>"
 
 
-class Output(ControlSequence):
+class Output(Token):
     def __init__(self, variable):
         self.type = 'output'
         self.variable_name = variable
@@ -111,7 +107,7 @@ class Output(ControlSequence):
         return f"{{{{ {self.variable_name} }}}}"
 
 
-class Input(ControlSequence):
+class Input(Token):
     def __init__(self, input_type, variable):
         self.type = 'input'
         self.input_type = input_type
@@ -121,7 +117,7 @@ class Input(ControlSequence):
         return f"{{{{ formfield '{self.variable_name}' }}}}"
 
 
-class Text(ControlSequence):
+class Text(Token):
     def __init__(self, run):
         self.type = 'text'
         self.run = run
@@ -141,27 +137,27 @@ def read_docx(filename):
     return docx.Document(filename)
 
 
-def parse_sequence(sequence):
+def token_from_control_sequence(sequence):
     if not sequence:
         return None
 
     parts = sequence[1:-1].split(':')
     identifier, remainder = parts[0].strip(), "".join(parts[1:]).strip()
 
-    cs = None
+    token = None
 
     if identifier == 'page':
-        cs = NewPage(title=remainder)
+        token = NewPage(title=remainder)
     if identifier == 'comment':
-        cs = Comment(text=remainder)
+        token = Comment(text=remainder)
     if identifier == 'button':
-        cs = Button(text=remainder)
+        token = Button(text=remainder)
     if identifier == 'output':
-        cs = Output(variable=remainder)
+        token = Output(variable=remainder)
     if identifier in ['boolean', 'currency', 'integer', 'float', 'string', 'longstring']:
-        cs = Input(input_type=identifier, variable=remainder)
+        token = Input(input_type=identifier, variable=remainder)
 
-    return cs
+    return token
 
 
 def has_same_style(previous_run, current_run):
@@ -170,13 +166,13 @@ def has_same_style(previous_run, current_run):
             previous_run.font.color.rgb == current_run.font.color.rgb
 
 
-def detect_control_sequence(run):
+def get_token(run):
     if run.text is None:
         return None
 
     match = re.search(r"\[[A-Za-z\d\s.,_!?:]*\]", run.text, re.MULTILINE)
     if match:
-        return parse_sequence(match.string)
+        return token_from_control_sequence(match.string)
 
     if match is None:
         return Text(run=run)
@@ -205,7 +201,7 @@ def main():
         # print([r.text for r in merged_runs])
 
         for run in merged_runs:
-            s = detect_control_sequence(run)
+            s = get_token(run)
             if s.type == 'page':
                 current_page = Page(title=s.title, paragraphs=[], form_fields=[], vars_for_template=[])
                 exp.pages.append(current_page)
@@ -227,9 +223,9 @@ def main():
             p_prefix = '<p>'
             p_postfix = '</p>'
 
-        check = [e.render() for e in paragraph_content if e.render() is not None]
-        if check:
-            content = "".join(check)
+        rendered_elements = [e.render() for e in paragraph_content if e.render() is not None]
+        if rendered_elements:
+            content = "".join(rendered_elements)
             current_page.paragraphs.append(f"{p_prefix}{content}{p_postfix}")
 
     for page in exp.pages:
