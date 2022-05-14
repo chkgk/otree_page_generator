@@ -86,7 +86,7 @@ class Page:
 
         return content
 
-    def render_page_class(self):
+    def render_class(self):
         content = f"""
 class {self.title}(Page):"""
 
