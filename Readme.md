@@ -43,5 +43,5 @@ To let participants input information, write ```[field_name]``` and set the colo
 ### Buttons
 Buttons are special inputs. To include the standard oTree next button, write ```[button: next]``` and set the color to Word's standard blue (<span style="color: #0070C0">#0070C0</span>). To include a button that does not submit the page, write anything but 'next' after the colon, i.e., ```[button: Do not submit!]```.
 
-## Screenshot
+### Screenshot of example instructions document
 <img src="screenshot.png">
