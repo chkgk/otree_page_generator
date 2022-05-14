@@ -36,7 +36,7 @@ class Output(Token):
         self.var_for_template = None
 
         parts = self.variable_name.split('.')
-        if len(parts) == 1:
+        if len(parts) == 1 or parts[0] not in ['Player', 'Group', 'Session', 'Constants']:
             self.var_for_template = self.variable_name
 
     def render(self):
