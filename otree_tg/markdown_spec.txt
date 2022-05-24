@@ -1,0 +1,35 @@
+Specification for experimental instructions written in markdown
+---
+
+General ideas:
+- use a markdown to html parser library like mistletoe?
+- process either the resulting HTML or the markdown to gather otree specific data
+- we can use the same variable definition as in the word adapter
+
+---
+
+Top level headings define new page and specify the title
+Spaces are removed to form the page class name
+
+# Introduction
+
+generates:
+class Introduction(Page)
+    pass
+
+and fills the {{ title }} tag on the template.
+
+---
+
+blank lines define paragraph beginnings and endings
+
+---
+
+line breaks are transformed into <br> by default
+
+---
+
+**bold** and and *italic* text are formatted as <b>bold</b> and <i>italic</i>
+
+---
+

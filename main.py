@@ -1,8 +1,10 @@
 from otree_tg import Experiment
+from otree_tg.adapters import WordAdapter
 
 
 def main():
-    exp = Experiment('Example.docx')
+    wa = WordAdapter('test_data/Example.docx')
+    exp = Experiment(wa)
 
     if exp.player_fields:
         print(exp.render_player_class())
